@@ -1,3 +1,4 @@
 secure-smtplib
 flask
+flask_cors
 openai

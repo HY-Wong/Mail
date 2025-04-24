@@ -3,6 +3,7 @@ import os
 import json
 
 from flask import Flask, request, jsonify
+from flask_cors import CORS
 from openai import OpenAI
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
@@ -10,6 +11,7 @@ from typing import List, Dict, Tuple
 
 
 app = Flask(__name__)
+cors = CORS(app)
 
 client = OpenAI(
     api_key=os.environ.get("OPENAI_API_KEY"),
@@ -27,30 +29,33 @@ def postME():
     project_skills = [project_requirement['skill'] for project_requirement in project_requirements]
 
     candidates_list = data['candidates']
+    """
     candidates_per_requirements = []
     for candidates in candidates_list:
         candidates_per_requirements.append([
             {
-                'name': candidate['name'],
+                'name': candidate['profile_name'],
                 'role': candidate['role'],
                 'seniority': candidate['seniority'],
-                'description': candidate['description'],
+                'explanation': candidate['explanation'],
             }
             for candidate in candidates
         ])
+    """
 
     # Send to the client
-    prompt = build_company_email_prompt(company_name, contact_name, project_name, project_skills, candidates_per_requirements)
+    prompt = build_company_email_prompt(company_name, contact_name, project_name, project_skills, candidates_list)
     # print(prompt)
     subject, body = generate_email(prompt)
     send_email('hackathon.hyw.2025@gmail.com', subject, body)
     
     # Send to the consultants
-    prompt = build_candidate_email_prompt(company_name, contact_name, project_name, project_description, candidates_per_requirements)
+    prompt = build_candidate_email_prompt(company_name, contact_name, project_name, project_description, candidates_list)
     # print(prompt)
     subject, body = generate_email(prompt)
     send_email('hackathon.hyw.2025@gmail.com', subject, body)
-    return
+    
+    return jsonify({"message": "Emails sent successfully"}), 200
 
 
 def build_company_email_prompt(
@@ -61,7 +66,7 @@ def build_company_email_prompt(
     for skill, candidates in zip(project_skills, candidates_per_requirements):
         candidates_text += f"The following consultants are assigned for the required skill: {skill}\n"
         candidates_text += "\n".join(
-            f"- {c['name']} ({c['seniority']} {c['role']}): {c['description']}"
+            f"- {c['profile_name']} ({c['seniority']} {c['role']}): {c['explanation']}"
             for c in candidates
         )
 
@@ -100,7 +105,7 @@ def build_candidate_email_prompt(
     lines = []
     for candidates in candidates_per_requirements:
         lines.extend(
-            f"- {c['name']} ({c['role']})"
+            f"- {c['profile_name']} ({c['role']})"
             for c in candidates
         )
     candidates_text = "\n".join(lines)
@@ -145,8 +150,8 @@ def generate_email(prompt: str) -> Tuple[str, str]:
     content = response.output_text
     subject, body = content.split("\n", 1)
     # print(content)
-    print(subject)
-    print(body)
+    # print(subject)
+    # print(body)
     return subject, body
 
 
@@ -170,4 +175,4 @@ def send_email(receiver: str, subject: str, body: str):
 
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=True, port=5001)
