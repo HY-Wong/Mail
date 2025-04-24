@@ -8,13 +8,16 @@ from openai import OpenAI
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from typing import List, Dict, Tuple
+from dotenv import load_dotenv
 
 
 app = Flask(__name__)
 cors = CORS(app)
 
+load_dotenv()
+
 client = OpenAI(
-    api_key=os.environ.get("OPENAI_API_KEY"),
+    api_key=os.environ.get("OPEN_AI_KEY"),
 )
 
 
@@ -29,19 +32,6 @@ def postME():
     project_skills = [project_requirement['skill'] for project_requirement in project_requirements]
 
     candidates_list = data['candidates']
-    """
-    candidates_per_requirements = []
-    for candidates in candidates_list:
-        candidates_per_requirements.append([
-            {
-                'name': candidate['profile_name'],
-                'role': candidate['role'],
-                'seniority': candidate['seniority'],
-                'explanation': candidate['explanation'],
-            }
-            for candidate in candidates
-        ])
-    """
 
     # Send to the client
     prompt = build_company_email_prompt(company_name, contact_name, project_name, project_skills, candidates_list)
@@ -66,7 +56,7 @@ def build_company_email_prompt(
     for skill, candidates in zip(project_skills, candidates_per_requirements):
         candidates_text += f"The following consultants are assigned for the required skill: {skill}\n"
         candidates_text += "\n".join(
-            f"- {c['profile_name']} ({c['seniority']} {c['role']}): {c['explanation']}"
+            f"- {c['profile_name']} ({c['seniority']} {c['role']}): {c['profile_description']}"
             for c in candidates
         )
 
@@ -93,7 +83,11 @@ def build_company_email_prompt(
         At the end of the email, include the following sentence:
         "Please schedule a short alignment interview using the following link: {scheduling_link}"
 
-        Do not add any details not included above.
+        At the very end of the email, sign off with:
+        Best regards,
+        Bach-Thi Dinh – Senior Consultant – Exxeta
+
+        Please write the entire email in plain text only. Do not use Markdown or any special formatting (e.g., asterisks, bold, or italics). Do not add any details not included above.
         """
     return prompt
 
@@ -135,7 +129,11 @@ def build_candidate_email_prompt(
         At the end of the email, include the following sentence:
         "Please schedule a short alignment interview using the following link: {scheduling_link}"
 
-        Do not add any details not included above.
+        At the very end of the email, sign off with:
+        Best regards,
+        Bach-Thi Dinh – Senior Consultant – Exxeta
+
+        Please write the entire email in plain text only. Do not use Markdown or any special formatting (e.g., asterisks, bold, or italics). Do not add any details not included above.
         """
     return prompt
 
