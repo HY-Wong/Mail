@@ -85,7 +85,7 @@ def build_company_email_prompt(
 
         At the very end of the email, sign off with:
         Best regards,
-        Bach-Thi Dinh – Senior Consultant – Exxeta
+        Theo Wong – Senior Manager
 
         Please write the entire email in plain text only. Do not use Markdown or any special formatting (e.g., asterisks, bold, or italics). Do not add any details not included above.
         """
@@ -131,7 +131,7 @@ def build_candidate_email_prompt(
 
         At the very end of the email, sign off with:
         Best regards,
-        Bach-Thi Dinh – Senior Consultant – Exxeta
+        Theo Wong – Senior Manager
 
         Please write the entire email in plain text only. Do not use Markdown or any special formatting (e.g., asterisks, bold, or italics). Do not add any details not included above.
         """
@@ -173,4 +173,13 @@ def send_email(receiver: str, subject: str, body: str):
 
 
 if __name__ == '__main__':
-    app.run(debug=True, port=5001)
+    # app.run(debug=True, port=5001)
+
+    with app.test_request_context(
+            "/email_sender",
+            method="POST",
+            data=json.dumps(json.load(open("test.json"))),
+            content_type="application/json"
+        ):
+        response = postME()
+        print(response)
