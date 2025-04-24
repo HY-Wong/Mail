@@ -173,13 +173,5 @@ def send_email(receiver: str, subject: str, body: str):
 
 
 if __name__ == '__main__':
-    # app.run(debug=True, port=5001)
-
-    with app.test_request_context(
-            "/email_sender",
-            method="POST",
-            data=json.dumps(json.load(open("test.json"))),
-            content_type="application/json"
-        ):
-        response = postME()
-        print(response)
+    app.run(debug=True, port=5001)
+    
